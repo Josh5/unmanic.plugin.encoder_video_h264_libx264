@@ -35,7 +35,6 @@ logger = logging.getLogger("Unmanic.Plugin.encoder_video_h264_libx264")
 class Settings(PluginSettings):
     settings = {
         "advanced":              False,
-        "hw_decoding":           False,
         "max_muxing_queue_size": 2048,
         "crf":                   23,
         "preset":                "medium",
@@ -51,7 +50,6 @@ class Settings(PluginSettings):
             "advanced":              {
                 "label": "Write your own FFmpeg params",
             },
-            "hw_decoding":           self.__set_hw_decoding_checkbox_form_settings(),
             "max_muxing_queue_size": self.__set_max_muxing_queue_size_form_settings(),
             "crf":                   self.__set_crf_form_settings(),
             "preset":                self.__set_preset_form_settings(),
@@ -63,15 +61,6 @@ class Settings(PluginSettings):
             },
             "dest_container":        self.__set_destination_container(),
         }
-
-    def __set_hw_decoding_checkbox_form_settings(self):
-        values = {
-            "label":      "Enable NVDEC HW Accelerated Decoding?",
-            "input_type": "checkbox",
-        }
-        if self.get_setting('advanced'):
-            values["display"] = 'hidden'
-        return values
 
     def __set_max_muxing_queue_size_form_settings(self):
         values = {
@@ -308,13 +297,6 @@ def on_worker_process(data):
 
         if settings.get_setting('advanced'):
             data['exec_command'] += settings.get_setting('main_options').split()
-        else:
-            # Enable HW decoding?
-            if settings.get_setting('hw_decoding'):
-                data['exec_command'] += [
-                    '-hwaccel', 'cuda',
-                    '-hwaccel_output_format', 'cuda',
-                ]
 
         # Add file in
         data['exec_command'] += ['-i', abspath]
